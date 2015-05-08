@@ -20,16 +20,23 @@ DHT dht(DHTPIN, DHTTYPE);
 #define OLED_RESET 10 // RES
 Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
+#define FAN_RELAY  5  
+
 #define MAIN_DELAY 15000
 #define FAN_RUNNING_CYCLES 8
+#define FAN_WAITING_CYCLES 40
 boolean showTemp = true;
 const float MAX_HUMIDITY = 50;
 const float HUMIDITY_THRESHOLD = 60;
-int fanCycles = -1;
+int fanRunning = -1;
+int fanWaiting = -1;
 
 
 void setup() {
   Serial.begin(9600); 
+  
+  pinMode(FAN_RELAY, OUTPUT);
+  stopFan();
  
   dht.begin();
   
@@ -37,6 +44,8 @@ void setup() {
   display.display();
   delay(2000);
   display.clearDisplay();
+  
+  printFanStatus(false);
 }
 
 void loop() {
@@ -61,6 +70,7 @@ void loop() {
   
   showMeasures(t, h);
   
+  printFanStatus(fanRunning > -1);
   
   display.display();  
 }
@@ -90,34 +100,51 @@ void showMeasures(float temperature, float humidity) {
 }
 
 void controlFan(float humidity) {
-  if (fanCycles > 0) {
-    // fan running
+  if (fanWaiting == -1 && fanRunning == -1) {
+    if (humidity >= HUMIDITY_THRESHOLD) {
+      Serial.println("start waiting");
+      fanWaiting = FAN_WAITING_CYCLES;
+    } 
+  } else if (fanWaiting > 0 && fanRunning == -1) {
+    Serial.println("waiting");
+    fanWaiting--;
+  } else if (fanWaiting == 0 && fanRunning == -1) {
+    if (humidity >= HUMIDITY_THRESHOLD) {
+      Serial.println("starting");
+      fanRunning = FAN_RUNNING_CYCLES; 
+      startFan();
+    } 
+    Serial.println("reset waiting");
+    fanWaiting--;
+  } else if (fanWaiting == -1 && fanRunning > 0) {
     Serial.println("running");
-    fanCycles--;
-  } else if (fanCycles == 0) {
+    fanRunning--;
+  } else if (fanWaiting == -1 && fanRunning == 0) {
     if (humidity <= MAX_HUMIDITY) {
-      // fan stop
       Serial.println("stopping");
-      fanCycles--;
+      fanRunning--;
+      stopFan();
     } else {
       Serial.println("keep running");
-      fanCycles = FAN_RUNNING_CYCLES;
+      fanRunning = FAN_RUNNING_CYCLES;
     }
-  } else {
-    Serial.println("is off");
-    //fanCycles == -1
-    if (humidity >= HUMIDITY_THRESHOLD) {
-      // start fan
-      Serial.println("starting");
-      fanCycles = FAN_RUNNING_CYCLES;  
-    } 
   }
-  
+}
+
+void startFan() {
+  digitalWrite(FAN_RELAY,0);
+}
+
+void stopFan() {
+  digitalWrite(FAN_RELAY,1);
+}
+
+void printFanStatus(boolean on) {
   display.setTextSize(1);
   display.setCursor(0,0);
-  if (fanCycles > -1) {
-    display.print("FAN ON");
-  } else {
-    display.print("FAN OFF");
-  }
+  String state = "OFF";
+  if (on) {
+    state = "ON";
+  } 
+  display.print("FAN " + state);
 }
