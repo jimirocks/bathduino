@@ -24,10 +24,10 @@ Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 
 #define MAIN_DELAY 15000
 #define FAN_RUNNING_CYCLES 8
-#define FAN_WAITING_CYCLES 40
+#define FAN_WAITING_CYCLES 60
 boolean showTemp = true;
-const float MAX_HUMIDITY = 50;
-const float HUMIDITY_THRESHOLD = 60;
+const float MAX_HUMIDITY = 55;
+const float HUMIDITY_THRESHOLD = 65;
 int fanRunning = -1;
 int fanWaiting = -1;
 
