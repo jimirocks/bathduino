@@ -26,8 +26,8 @@ Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 #define FAN_RUNNING_CYCLES 8
 #define FAN_WAITING_CYCLES 60
 boolean showTemp = true;
-const float MAX_HUMIDITY = 55;
-const float HUMIDITY_THRESHOLD = 65;
+const float MAX_HUMIDITY = 62;
+const float HUMIDITY_THRESHOLD = 80;
 int fanRunning = -1;
 int fanWaiting = -1;
 
@@ -83,7 +83,7 @@ void showError(String msg) {
 }
 
 void showMeasures(float temperature, float humidity) {  
-  display.setTextSize(5);
+  display.setTextSize(4);
   display.setCursor(0,30);
 
   if (showTemp) {
