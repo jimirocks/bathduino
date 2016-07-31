@@ -23,8 +23,8 @@ Adafruit_SSD1306 display(OLED_MOSI, OLED_CLK, OLED_DC, OLED_RESET, OLED_CS);
 #define FAN_RELAY  5  
 
 #define MAIN_DELAY 15000
-#define FAN_RUNNING_CYCLES 8
-#define FAN_WAITING_CYCLES 60
+#define FAN_RUNNING_CYCLES 16
+#define FAN_WAITING_CYCLES 120
 boolean showTemp = true;
 const float MAX_HUMIDITY = 55;
 const float HUMIDITY_THRESHOLD = 65;
@@ -120,14 +120,9 @@ void controlFan(float humidity) {
     Serial.println("running");
     fanRunning--;
   } else if (fanWaiting == -1 && fanRunning == 0) {
-    if (humidity <= MAX_HUMIDITY) {
-      Serial.println("stopping");
-      fanRunning--;
-      stopFan();
-    } else {
-      Serial.println("keep running");
-      fanRunning = FAN_RUNNING_CYCLES;
-    }
+    Serial.println("stopping");
+    fanRunning--;
+    stopFan();
   }
 }
 
